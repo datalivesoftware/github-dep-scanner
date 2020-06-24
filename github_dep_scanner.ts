@@ -1,39 +1,37 @@
-import { parse } from "https://deno.land/std/flags/mod.ts";
+import Denomander from "https://deno.land/x/denomander/mod.ts";
 import { writeCSV } from "https://deno.land/x/csv@v0.3.1/mod.ts";
 
-const defaultArgs = {
-  type: undefined as 'PIP' | 'NPM' | undefined,
-  package: undefined as string | undefined,
-  outfile: 'dependencies.csv' as string,
-  org: 'datalivesoftware',
-  token: ''
-}
 
-const usage = `Usage: deno github_dep_scanner list|export [--type=PIP|NPM] [--package=NAME] [--outfile=FILENAME] --org=ORGNAME --token=GITHUB_ACCESS_TOKEN`
+// Set up the program and options 
+const program = new Denomander({
+    app_name: "github_dep_scanner",
+    app_description: "Scans your dependabot github dependencies across all your repositories",
+    app_version: "1.1.0"
+  }) 
 
-const parseArgs = () => {
-  const p = parse(Deno.args, { default: defaultArgs });
-  const a = {
-    action: (p._.length > 0 ? p._[0] : 'list') || 'list' as 'list' | 'export',
-    type: p.type as 'PIP' | 'NPM' | undefined,
-    package: p.package as string | undefined,
-    outfile: p.outfile as string,
-    org: p.org as string,
-    token: p.token as string,
-  }
-  if (!(a.action === 'list' || a.action === 'export')) {
-    console.error(`"${a.action}" is not a valid action.  Must be "list" or "export".`)
-    console.error(usage)
-    Deno.exit(1)
-  }
-  if (a.type && !(a.type === 'PIP' || a.type === 'NPM')) {
-    console.error(`"${a.type}" is not a valid type. Must be "PIP" or "NPM".`)
-    console.error(usage)
-    Deno.exit(1)
-  }
-  return a
+program
+  .command("list", "List dependencies to the console")
+    .requiredOption("-u, --org", "The github organization to look at the repositories of")
+    .requiredOption("-u, --token", "Your personal Github command line access token")
+    .option("-t, --type", "Filter dependencies to only a specified type.  Eg. NPM (yarn, npm) or PIP (poetry, pipenv, pip, etc)")
+    .option("-p, --package", "Specify a single package to filter to.  Eg. django")
+  .command("export", "Export dependencies to a CSV file")
+    .requiredOption("-u, --org", "The github organization to look at the repositories of")
+    .requiredOption("-u, --token", "Your personal Github command line access token")
+    .option("-t, --type", "Filter dependencies to only a specified type.  Eg. NPM (yarn, npm) or PIP (poetry, pipenv, pip, etc)")
+    .option("-p, --package", "Specify a single package to filter to.  Eg. django")
+    .requiredOption("-o, --outfile", "For export, the file to save the CSV to")
+  .parse(Deno.args)
+
+
+// Set default options and specify types of options
+const options = {
+  org: (program.org || 'datalivesoftware') as string,
+  token: program.token as string,
+  type: program.type as string | undefined,
+  package: program.package as string | undefined,
+  outfile: program.outfile as string| undefined,
 }
-const args = parseArgs()
 
 
 // A GraphQL query that will fetch dependency graphs for all projects
@@ -67,6 +65,8 @@ query ($login: String!) {
   }
 }
 `
+
+// Specify types of API result to assist in future code
 type PackageManger = 'NPM' | 'PIP' | 'NONE'
 
 interface Dependency {
@@ -104,7 +104,6 @@ interface ApiResult {
   }
 }
 
-
 interface ParsedDependencies {
   name: string;
   dependencies: {
@@ -114,15 +113,17 @@ interface ParsedDependencies {
 }
 
 
+// Methods for fetching and processing the github api data
+
 const fetchData = async () => {
   const r = await fetch('https://api.github.com/graphql', {
     method: 'POST', 
     headers: [
       ['Content-Type', 'application/json'],
       ['Accept', 'application/vnd.github.hawkgirl-preview+json'],
-      ['Authorization', `Bearer ${args.token}`],
+      ['Authorization', `Bearer ${program.token}`],
     ],
-    body: JSON.stringify({query, variables: {login: args.org}}),
+    body: JSON.stringify({query, variables: {login: program.org}}),
   })
   return await r.json() as ApiResult;
 }
@@ -150,27 +151,26 @@ const parseData = (data: ApiResult): ParsedDependencies[] => {
     .sort((a,b) => a.name.localeCompare(b.name))
 }
 
-
-
 const fetchAndProcessData = async () => {
   let d = parseData(await fetchData())
-  if (args.type){
-    d = d.filter(dp => dp.packageManager == args.type)
+  if (program.type){
+    d = d.filter(dp => dp.packageManager === program.type)
   }
   return d
 }
 
 
+// And fetch all the data
 console.log('Fetching dependency data from github. (this usually takes about 7 seconds)')
 const data = await fetchAndProcessData();
 
 
-
-if (args.action === 'list') {
-  if (args.package) {
-    console.log(`Projects that depend on ${args.package}:`)
+// Listing dependencies
+if (program.list) {
+  if (options.package) {
+    console.log(`Projects that depend on ${options.package}:`)
     for (var repo of data) {
-      console.log(`${repo.name} ${repo.dependencies[args.package.toLocaleLowerCase()] || 'NONE'}`)
+      console.log(`${repo.name} ${repo.dependencies[(options.package || '').toLocaleLowerCase()] || 'NONE'}`)
     }
   }
   else {
@@ -179,10 +179,12 @@ if (args.action === 'list') {
 }
 
 
-if (args.action === 'export') {
-  console.log(`Exporting data to ${args.outfile} ...`)
+// Exporting dependencies
+if (program.export && options.outfile) {
+  
+  console.log(`Exporting data to ${options.outfile} ...`)
   const rows = [] as string[][];
-  if (args.package) {
+  if (options.package) {
     console.error('NOT IMPLEMENTED')
   }
   else {
@@ -198,7 +200,7 @@ if (args.action === 'export') {
     }
   }
 
-  const f = await Deno.open(args.outfile, { write: true, create: true, truncate: true });
+  const f = await Deno.open(options.outfile, { write: true, create: true, truncate: true });
 
   await writeCSV(f, rows);
   
