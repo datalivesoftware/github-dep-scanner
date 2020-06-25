@@ -1,5 +1,7 @@
 
-# github_dep_scanner
+# Github Dependabot Across-Organization Scanner
+
+Simple Deno script for scanning all your dependencies on GitHub and exporting these to a CSV file or console 
 
 ## Installation
 
