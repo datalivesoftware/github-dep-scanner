@@ -1,5 +1,5 @@
 import Denomander from "https://deno.land/x/denomander@0.6.2/mod.ts";
-import { writeCSV } from "https://deno.land/x/csv@v0.3.1/mod.ts";
+import { writeCSV } from "https://deno.land/x/csv@v0.5.1/mod.ts";
 
 
 // Set up the program and options 
