@@ -170,7 +170,7 @@ if (program.list) {
   if (options.package) {
     console.log(`Projects that depend on ${options.package}:`)
     for (var repo of data) {
-      console.log(`${repo.name} ${repo.dependencies[(options.package || '').toLocaleLowerCase()] || 'NONE'}`)
+      console.log(`${repo.dependencies[(options.package || '').toLocaleLowerCase()] || 'NONE'} ${repo.name}`)
     }
   }
   else {
