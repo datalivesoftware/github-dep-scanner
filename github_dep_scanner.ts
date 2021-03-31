@@ -145,6 +145,7 @@ const parseRepo = (repo: Repository): ParsedDependencies[] => {
 }
 
 const parseData = (data: ApiResult): ParsedDependencies[] => {
+  console.log(data)
   return data.data.organization.repositories.edges
     .map(pr => parseRepo(pr.node))
     .flat()
