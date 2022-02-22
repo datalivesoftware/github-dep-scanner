@@ -1,0 +1,18 @@
+{
+  "name": "github-dep-scanner",
+  "version": "1.0.0",
+  "main": "github_dep_scanner.ts",
+  "repository": "git@github.com/datalivesoftware/github-dep-scanner.git",
+  "author": "Humphrey Murray <humphrey@datalive.com.au>",
+  "license": "MIT",
+  "scripts": {
+    "generate": "graphql-codegen --config codegen.yml"
+  },
+  "dependencies": {
+    "@graphql-codegen/cli": "^2.6.2",
+    "@graphql-codegen/typescript": "^2.4.5",
+    "@graphql-codegen/typescript-operations": "^2.3.2",
+    "graphql": "^16.3.0",
+    "graphql-tag": "^2.12.6"
+  }
+}
