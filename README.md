@@ -57,7 +57,7 @@ Options:
 deno run --allow-net=api.github.com https://raw.githubusercontent.com/datalivesoftware/github-dep-scanner/master/main.ts --org=datalivesoftware --token=MY_PERSONAL_GITHUB_ACCESS_TOKEN list
 
 # List the django version used in every product
-deno run --allow-net=api.github.com https://raw.githubusercontent.com/datalivesoftware/github-dep-scanner/master/main.ts --org=datalivesoftware --token=MY_PERSONAL_GITHUB_ACCESS_TOKEN list --type=PIP --package=django
+deno run --allow-net=api.github.com https://raw.githubusercontent.com/datalivesoftware/github-dep-scanner/master/main.ts --org=datalivesoftware --token=MY_PERSONAL_GITHUB_ACCESS_TOKEN list --type=PIP --package=django --filename=poetry.lock
 
 # Export all Python dependencies to a CSV
 deno run --allow-write --allow-net=api.github.com https://raw.githubusercontent.com/datalivesoftware/github-dep-scanner/master/main.ts --org=datalivesoftware --token=MY_PERSONAL_GITHUB_ACCESS_TOKEN export --type=PIP --outfile=pipdeps.csv 
