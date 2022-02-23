@@ -14,11 +14,13 @@ program
     .requiredOption("-u, --org", "The github organization to look at the repositories of")
     .requiredOption("-u, --token", "Your personal Github command line access token")
     .option("-t, --type", "Filter dependencies to only a specified type.  Eg. NPM (yarn, npm) or PIP (poetry, pipenv, pip, etc)")
+    .option("-f, --filename", "File name of dependency file.  Eg. poetry.lock, pyproject.toml, or package.json")
     .option("-p, --package", "Specify a single package to filter to.  Eg. django")
   .command("export", "Export dependencies to a CSV file")
     .requiredOption("-u, --org", "The github organization to look at the repositories of")
     .requiredOption("-u, --token", "Your personal Github command line access token")
     .option("-t, --type", "Filter dependencies to only a specified type.  Eg. NPM (yarn, npm) or PIP (poetry, pipenv, pip, etc)")
+    .option("-f, --filename", "File name of dependency file.  Eg. poetry.lock, pyproject.toml, or package.json")
     .option("-p, --package", "Specify a single package to filter to.  Eg. django")
     .requiredOption("-o, --outfile", "For export, the file to save the CSV to")
   .parse(Deno.args)
@@ -31,13 +33,14 @@ const options = {
   type: program.type as string | undefined,
   package: program.package as string | undefined,
   outfile: program.outfile as string| undefined,
+  filename: program.filename as string| undefined,
 }
 
 
 
 // And fetch all the data
 console.log('Fetching dependency data from github. (this usually takes about 7 seconds)')
-const data = await fetchAndProcessData(options.token, options.org, options.type || null);
+const data = await fetchAndProcessData(options.token, options.org, options.type || null, options.filename || null);
 
 
 // Listing dependencies

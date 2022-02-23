@@ -16,6 +16,7 @@ interface ParsedDependencies {
       [key: string]: string;
   };
   packageManager: string;
+  filename: string;
 }
 
 const parseRepo = (repo: RepositoryFragment): ParsedDependencies[] => 
@@ -26,12 +27,14 @@ const parseRepo = (repo: RepositoryFragment): ParsedDependencies[] =>
         name: `${repo.nameWithOwner}/${m?.filename}`,
         dependencies: parseDependencies(m.dependencies?.nodes as DependencyFragment[]),
         packageManager: first?.packageManager || 'NONE',
+        filename: m?.filename || 'NONE',
       }
     }
     return {
       name: repo.nameWithOwner,
       dependencies: {},
       packageManager: 'NONE',
+      filename: m?.filename || 'NONE',
     }
   }) || [];
 
@@ -43,10 +46,13 @@ const parseData = (data: RepositoryFragment[]): ParsedDependencies[] => {
     .sort((a,b) => a.name.localeCompare(b.name))
 }
 
-export const fetchAndProcessData = async (token: string, org: string, pkgType: string | null) => {
+export const fetchAndProcessData = async (token: string, org: string, pkgType: string | null, filename: string | null) => {
   let d = parseData(await fetchAllData(token, org))
   if (pkgType){
     d = d.filter(dp => dp.packageManager === pkgType)
+  }
+  if (filename) {
+    d = d.filter(dp => dp.filename.endsWith(filename));
   }
   return d
 }
