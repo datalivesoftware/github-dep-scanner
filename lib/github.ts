@@ -24,7 +24,7 @@ export const fetchAllData = async (apiKey: string, organization: string): Promis
 
     after = edges[edges.length -1]?.cursor || null;
 
-    for (let r of (data.organization?.repositories.edges || [])) {
+    for (const r of (data.organization?.repositories.edges || [])) {
       console.log(`Processing: ${r?.node?.nameWithOwner}`)
       if (r?.node?.dependencyGraphManifests?.pageInfo.hasNextPage) {
         repos.push({
@@ -51,18 +51,16 @@ export const fetchAllData = async (apiKey: string, organization: string): Promis
 
 const fetchAllManifestsRepo = async (apiKey: string, login: string, repoName: string, nManifests: number): Promise<ManifestFragment[]> => {
   let count = 0;
-  let after: string | null = null;
-  const manifests = [];
+  const manifests: {[name: string]: ManifestFragment} = {};
   while (count < nManifests) {
     console.log(`  ${repoName}: Fetching extra data.`)
     const d = await executePagedManifestsQuery(apiKey, {first: 5, after: null, login, repoName});
     const nodes =  d.organization?.repository?.dependencyGraphManifests?.nodes;
     if (nodes) {
-      for (let node of nodes) {
+      for (const node of nodes) {
         if (node) {
-          manifests.push(node)
+          manifests[node.id] = node
           count += 1
-          after = node.id
         }
       }
     }
@@ -71,7 +69,7 @@ const fetchAllManifestsRepo = async (apiKey: string, login: string, repoName: st
     }
 
   }
-  return manifests;
+  return Object.values(manifests);
 }
 
 

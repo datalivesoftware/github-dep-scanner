@@ -4,13 +4,13 @@ import { writeCSV } from "https://deno.land/x/csv@v0.7.2/mod.ts";
 
 const parseDependencies = (dependencies: ReadonlyArray<DependencyFragment>) => {
   const byName = {} as {[key:string]: string}
-  for (var d of dependencies) {
+  for (const d of dependencies) {
       byName[d.packageName.toLocaleLowerCase()] = d.requirements
   }
   return byName
 }
 
-interface ParsedDependencies {
+export interface ParsedDependencies {
   name: string;
   dependencies: {
       [key: string]: string;
@@ -67,9 +67,9 @@ export const exportToCSV = async (data: ParsedDependencies[], outfile: string) =
   const pkgKeys = [...new Set(data.map(dp => Object.keys(dp.dependencies)).flat())].sort();
   let row = ['Repository', ...pkgKeys];
   rows.push(row)
-  for (var repo of data) {
+  for (const repo of data) {
     row = [repo.name, ...(new Array(pkgKeys.length)).fill('')];
-    for (var dep in repo.dependencies) {
+    for (const dep in repo.dependencies) {
       row[pkgKeys.indexOf(dep) + 1] = repo.dependencies[dep]
     }
     rows.push(row)

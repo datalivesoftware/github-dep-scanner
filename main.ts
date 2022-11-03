@@ -1,6 +1,5 @@
 import Denomander from "https://deno.land/x/denomander@0.9.1/mod.ts";
-import { writeCSV } from "https://deno.land/x/csv@v0.7.2/mod.ts";
-import { fetchAndProcessData, exportToCSV } from './lib/index.ts';
+import { fetchAndProcessData, exportToCSV, ParsedDependencies } from './lib/index.ts';
 
 // Set up the program and options 
 const program = new Denomander({
@@ -39,7 +38,7 @@ const options = {
 
 
 // And fetch all the data
-console.log('Fetching dependency data from github. (this usually takes about 7 seconds)')
+console.log('Fetching dependency data from github. (this usually takes about 37 seconds)')
 const data = await fetchAndProcessData(options.token, options.org, options.type || null, options.filename || null);
 
 
@@ -47,8 +46,14 @@ const data = await fetchAndProcessData(options.token, options.org, options.type 
 if (program.list) {
   if (options.package) {
     console.log(`Projects that depend on ${options.package}:`)
-    for (var repo of data) {
-      console.log(`${repo.dependencies[(options.package || '').toLocaleLowerCase()] || 'NONE'} ${repo.name}`)
+
+    const getVersionStr = (repo: ParsedDependencies) => repo.dependencies[(options.package || '').toLocaleLowerCase()] || '';
+
+    for (const repo of data
+        .filter(r => getVersionStr(r))
+        .sort((a,b) => getVersionStr(a).localeCompare(getVersionStr(b)))) 
+    {
+      console.log(`${getVersionStr(repo)} ${repo.name}`)
     }
   }
   else {
