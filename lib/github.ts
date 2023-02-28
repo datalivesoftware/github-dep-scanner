@@ -10,21 +10,27 @@ export const fetchAllData = async (apiKey: string, organization: string): Promis
   let after: string | null = null;
   while (hasNextPage){
 
-    const data: AllReposQuery = await executeAllReposQuery(apiKey, {first: 10, login: organization, after,});
+    const data = (await executeAllReposQuery(apiKey, {first: 10, login: organization, after,})) as AllReposQuery | null;
 
-    const edges = data.organization?.repositories.edges || [];
+    const reposPage = data?.organization?.repositories
 
-    if (!data.organization?.repositories.edges) {
+    if (!reposPage) 
+      continue;
+    
+
+    const edges = reposPage.edges || [];
+
+    if (!reposPage.edges) {
       break; 
     }
-    hasNextPage = data.organization.repositories.pageInfo.hasNextPage;
+    hasNextPage = reposPage.pageInfo.hasNextPage;
     if (edges.length === 0) {
       break;
     }
 
     after = edges[edges.length -1]?.cursor || null;
 
-    for (const r of (data.organization?.repositories.edges || [])) {
+    for (const r of (reposPage.edges || [])) {
       console.log(`Processing: ${r?.node?.nameWithOwner}`)
       if (r?.node?.dependencyGraphManifests?.pageInfo.hasNextPage) {
         repos.push({
