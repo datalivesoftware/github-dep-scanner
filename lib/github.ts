@@ -55,7 +55,7 @@ const fetchAllManifestsRepo = async (apiKey: string, login: string, repoName: st
   while (count < nManifests) {
     console.log(`  ${repoName}: Fetching extra data.`)
     const d = await executePagedManifestsQuery(apiKey, {first: 5, after: null, login, repoName});
-    const nodes =  d.organization?.repository?.dependencyGraphManifests?.nodes;
+    const nodes =  d?.organization?.repository?.dependencyGraphManifests?.nodes;
     if (nodes) {
       for (const node of nodes) {
         if (node) {
