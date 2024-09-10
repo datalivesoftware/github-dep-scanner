@@ -1,5 +1,7 @@
 import Denomander from "https://deno.land/x/denomander@0.9.1/mod.ts";
 import { fetchAndProcessData, exportToCSV, ParsedDependencies } from './lib/index.ts';
+import {getLatestSemanticVersion} from './lib/pypi.ts';
+import semver from "https://esm.sh/semver@7.5.4";
 
 // Set up the program and options 
 const program = new Denomander({
@@ -53,7 +55,8 @@ if (program.list) {
         .filter(r => getVersionStr(r))
         .sort((a,b) => getVersionStr(a).localeCompare(getVersionStr(b)))) 
     {
-      console.log(`${getVersionStr(repo)} ${repo.name}`)
+      const v = getVersionStr(repo);
+      console.log(`${v} (${await getLatestSemanticVersion(options.package, v.substring(2).trim())}) ${repo.name}`)
     }
   }
   else {
